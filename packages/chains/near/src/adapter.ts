@@ -77,7 +77,7 @@ export class NEARAdapter implements ChainAdapter {
   }
 
   deriveAddress(publicKey: Uint8Array): string {
-    return Buffer.from(publicKey).toString("hex");
+    return Array.from(publicKey).map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
   validateAddress(address: string): boolean {
@@ -107,7 +107,7 @@ export class NEARAdapter implements ChainAdapter {
       request_type: "view_access_key",
       finality: "final",
       account_id: senderAddress,
-      public_key: `ed25519:${Buffer.from(publicKey).toString("base64")}`,
+      public_key: `ed25519:${btoa(String.fromCharCode(...publicKey))}`,
     });
 
     const nonce = accessKey.nonce + 1;
@@ -134,7 +134,7 @@ export class NEARAdapter implements ChainAdapter {
       sig,
     );
 
-    const base64Tx = Buffer.from(signedTx).toString("base64");
+    const base64Tx = btoa(String.fromCharCode(...signedTx));
     const result = await this.rpc<{ transaction_outcome: { id: string } }>(
       "broadcast_tx_commit",
       [base64Tx],
@@ -186,7 +186,7 @@ export class NEARAdapter implements ChainAdapter {
     const keyBytes = new Uint8Array([...keyTypeBytes, ...publicKey]);
     const nonceBytes = borshEncodeU64(BigInt(nonce));
     const receiverBytes = borshEncodeString(receiver);
-    const blockHashBytes = Buffer.from(blockHash, "base64");
+    const blockHashBytes = Uint8Array.from(atob(blockHash), (c) => c.charCodeAt(0));
 
     const actionCount = borshEncodeU32(1);
     const actionType = new Uint8Array([3]);

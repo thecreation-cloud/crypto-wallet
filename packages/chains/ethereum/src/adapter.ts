@@ -129,7 +129,7 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async sendTransaction(params: SendParams): Promise<SendResult> {
-    const privKeyHex = `0x${Buffer.from(params.privateKey).toString("hex")}` as `0x${string}`;
+    const privKeyHex = `0x${Array.from(params.privateKey).map((b) => b.toString(16).padStart(2, "0")).join("")}` as `0x${string}`;
     const account = privateKeyToAccount(privKeyHex);
 
     const walletClient = createWalletClient({
