@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, type UseBoundStore, type StoreApi } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { deriveKey, deriveEd25519Key } from "@wallet/core";
 
@@ -12,7 +12,7 @@ function balanceKey(chainId: ChainId, address: string): string {
   return `${chainId}:${address}`;
 }
 
-export const useWalletStore = create<WalletStore>()(
+export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<WalletStore>()(
   immer((set, get) => ({
     wallets: [],
     activeWalletId: null,

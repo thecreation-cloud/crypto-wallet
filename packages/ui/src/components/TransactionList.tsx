@@ -34,7 +34,7 @@ function TxRow({ tx, decimals, symbol, explorerUrl }: {
   tx: Transaction;
   decimals: number;
   symbol: string;
-  explorerUrl?: string;
+  explorerUrl?: string | undefined;
 }) {
   const isIn = tx.direction === "in";
   const statusColor = tx.status === "confirmed" ? "text-green-400" : tx.status === "pending" ? "text-yellow-400" : "text-red-400";

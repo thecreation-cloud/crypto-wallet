@@ -8,7 +8,7 @@ import { ReceiveModal } from "./ReceiveModal.js";
 import { TransactionList } from "./TransactionList.js";
 import type { WalletAccount } from "@wallet/core";
 
-export function Dashboard(): React.JSX.Element {
+export function Dashboard(): React.JSX.Element | null {
   const wallet = useWalletStore((s) => s.getActiveWallet());
   const accounts = useWalletStore((s) => s.getActiveAccounts());
   const refreshAll = useWalletStore((s) => s.refreshAllBalances);
