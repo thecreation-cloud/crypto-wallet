@@ -10,7 +10,7 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array): Promis
   const enc = new TextEncoder();
   const keyMaterial = await subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
   return subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: 310_000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: salt.buffer as ArrayBuffer, iterations: 310_000, hash: "SHA-256" },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
     false,
@@ -40,7 +40,7 @@ export async function decrypt(payload: EncryptedPayload, password: string): Prom
   const iv = hexToBuf(payload.iv);
   const ciphertext = hexToBuf(payload.ciphertext);
   const key = await deriveKeyFromPassword(password, salt);
-  const plaintext = await subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  const plaintext = await subtle.decrypt({ name: "AES-GCM", iv: iv.buffer as ArrayBuffer }, key, ciphertext.buffer as ArrayBuffer);
   return dec.decode(plaintext);
 }
 
