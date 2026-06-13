@@ -1,6 +1,1 @@
-{
-  "installCommand": "pnpm install --ignore-scripts",
-  "buildCommand": "pnpm --filter @wallet/web build",
-  "outputDirectory": "apps/web/.next",
-  "framework": "nextjs"
-}
+{}

@@ -1,0 +1,4 @@
+{
+  "installCommand": "cd ../.. && pnpm install --ignore-scripts",
+  "framework": "nextjs"
+}
