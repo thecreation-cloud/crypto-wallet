@@ -19,6 +19,10 @@ const nextConfig = {
     "@wallet/chain-aptos",
   ],
   webpack: (config) => {
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
     config.resolve.extensionAlias = {
       ".js": [".ts", ".tsx", ".js", ".jsx"],
       ".jsx": [".tsx", ".jsx"],
