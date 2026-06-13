@@ -22,7 +22,7 @@ export function createEthereumAdapter(rpcUrl?: string): EVMAdapter {
   return new EVMAdapter({
     chain: mainnet,
     walletChainId: "ethereum",
-    rpcUrl: rpcUrl ?? env("NEXT_PUBLIC_ETH_RPC_URL", "https://cloudflare-eth.com"),
+    rpcUrl: rpcUrl ?? env("NEXT_PUBLIC_ETH_RPC_URL", "https://rpc.ankr.com/eth"),
   });
 }
 
@@ -38,7 +38,7 @@ export function createPolygonAdapter(rpcUrl?: string): EVMAdapter {
   return new EVMAdapter({
     chain: polygon,
     walletChainId: "polygon",
-    rpcUrl: rpcUrl ?? env("NEXT_PUBLIC_POLYGON_RPC_URL", "https://polygon-rpc.com"),
+    rpcUrl: rpcUrl ?? env("NEXT_PUBLIC_POLYGON_RPC_URL", "https://rpc.ankr.com/polygon"),
   });
 }
 
@@ -78,7 +78,7 @@ export function createFantomAdapter(rpcUrl?: string): EVMAdapter {
   return new EVMAdapter({
     chain: fantom,
     walletChainId: "fantom",
-    rpcUrl: rpcUrl ?? env("NEXT_PUBLIC_FTM_RPC_URL", "https://rpc.ftm.tools"),
+    rpcUrl: rpcUrl ?? env("NEXT_PUBLIC_FTM_RPC_URL", "https://rpc.ankr.com/fantom"),
   });
 }
 

@@ -31,6 +31,9 @@ export interface WalletStore {
   lock: () => void;
   isUnlocked: () => boolean;
 
+  hiddenChainIds: string[];
+  setChainVisibility: (chainId: string, visible: boolean) => void;
+
   registerAdapter: (adapter: ChainAdapter) => void;
   getAdapter: (chainId: ChainId) => ChainAdapter | undefined;
 

@@ -5,3 +5,4 @@ export { SendModal } from "./components/SendModal.js";
 export { ReceiveModal } from "./components/ReceiveModal.js";
 export { TransactionList } from "./components/TransactionList.js";
 export { UnlockScreen } from "./components/UnlockScreen.js";
+export { NetworksModal } from "./components/NetworksModal.js";

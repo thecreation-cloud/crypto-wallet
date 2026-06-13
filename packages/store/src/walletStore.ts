@@ -24,6 +24,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       session: null,
       balances: {},
       transactions: {},
+      hiddenChainIds: [],
 
       addWallet: (wallet) => {
         set((s) => {
@@ -72,6 +73,16 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
 
       isUnlocked: () => get().session !== null,
 
+      setChainVisibility: (chainId, visible) => {
+        set((s) => {
+          if (visible) {
+            s.hiddenChainIds = s.hiddenChainIds.filter((id) => id !== chainId);
+          } else if (!s.hiddenChainIds.includes(chainId)) {
+            s.hiddenChainIds.push(chainId);
+          }
+        });
+      },
+
       registerAdapter: (adapter) => {
         adapterRegistry.set(adapter.chainId, adapter);
       },
@@ -86,22 +97,26 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
         const cached = get().balances[key];
         if (cached && Date.now() - cached.lastUpdated < BALANCE_CACHE_MS) return;
 
-        const [native, tokens, txs] = await Promise.all([
-          adapter.getBalance(account.address),
-          adapter.getTokenBalances(account.address),
-          adapter.getTransactions(account.address),
-        ]);
+        try {
+          const [native, tokens, txs] = await Promise.all([
+            adapter.getBalance(account.address),
+            adapter.getTokenBalances(account.address),
+            adapter.getTransactions(account.address),
+          ]);
 
-        set((s) => {
-          s.balances[key] = {
-            chainId: account.chainId,
-            address: account.address,
-            native,
-            tokens,
-            lastUpdated: Date.now(),
-          } satisfies BalanceEntry;
-          s.transactions[key] = txs;
-        });
+          set((s) => {
+            s.balances[key] = {
+              chainId: account.chainId,
+              address: account.address,
+              native,
+              tokens,
+              lastUpdated: Date.now(),
+            } satisfies BalanceEntry;
+            s.transactions[key] = txs;
+          });
+        } catch {
+          // RPC unavailable — leave balance as-is; UI shows "···" placeholder
+        }
       },
 
       refreshAllBalances: async () => {
@@ -140,6 +155,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       partialize: (state) => ({
         wallets: state.wallets,
         activeWalletId: state.activeWalletId,
+        hiddenChainIds: state.hiddenChainIds,
       }),
     },
   ),
