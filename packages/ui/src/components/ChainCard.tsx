@@ -70,7 +70,7 @@ function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-export function ChainCard({ account, onSend, onReceive }: ChainCardProps) {
+export function ChainCard({ account, onSend, onReceive }: ChainCardProps): React.JSX.Element {
   const balanceEntry = useWalletStore((s) => s.getBalance(account.chainId, account.address));
   const adapter = useWalletStore((s) => s.getAdapter(account.chainId));
   const isUnlocked = useWalletStore((s) => s.isUnlocked());

@@ -80,7 +80,7 @@ function TxRow({ tx, decimals, symbol, explorerUrl }: {
   );
 }
 
-export function TransactionList({ account }: TransactionListProps) {
+export function TransactionList({ account }: TransactionListProps): React.JSX.Element {
   const txs = useWalletStore((s) => s.getTransactions(account.chainId, account.address));
   const adapter = useWalletStore((s) => s.getAdapter(account.chainId));
 

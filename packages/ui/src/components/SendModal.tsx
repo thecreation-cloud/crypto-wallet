@@ -11,7 +11,7 @@ interface SendModalProps {
 
 type Status = "idle" | "loading" | "success" | "error";
 
-export function SendModal({ account, onClose }: SendModalProps) {
+export function SendModal({ account, onClose }: SendModalProps): React.JSX.Element {
   const sendTransaction = useWalletStore((s) => s.sendTransaction);
   const adapter = useWalletStore((s) => s.getAdapter(account.chainId));
 

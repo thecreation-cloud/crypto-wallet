@@ -19,7 +19,7 @@ interface WalletSetupProps {
 
 type Step = "choice" | "create-backup" | "create-confirm" | "import" | "password";
 
-export function WalletSetup({ onComplete, chainAdapters }: WalletSetupProps) {
+export function WalletSetup({ onComplete, chainAdapters }: WalletSetupProps): React.JSX.Element {
   const addWallet = useWalletStore((s) => s.addWallet);
   const unlock = useWalletStore((s) => s.unlock);
 

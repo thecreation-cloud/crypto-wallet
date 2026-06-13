@@ -14,7 +14,7 @@ const chainAdapterSetupProps = adapters.map((a) => ({
   isEd25519: ED25519_CHAINS.has(a.chainId),
 }));
 
-export function WalletApp() {
+export function WalletApp(): JSX.Element {
   const wallets = useWalletStore((s) => s.wallets);
   const isUnlocked = useWalletStore((s) => s.isUnlocked());
 

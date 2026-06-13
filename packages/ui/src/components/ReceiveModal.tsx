@@ -8,7 +8,7 @@ interface ReceiveModalProps {
   onClose: () => void;
 }
 
-export function ReceiveModal({ account, onClose }: ReceiveModalProps) {
+export function ReceiveModal({ account, onClose }: ReceiveModalProps): React.JSX.Element {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {

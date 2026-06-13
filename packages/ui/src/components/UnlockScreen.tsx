@@ -5,7 +5,7 @@ import { decrypt, mnemonicToSeed } from "@wallet/core";
 import { useWalletStore } from "@wallet/store";
 import type { EncryptedPayload } from "@wallet/core";
 
-export function UnlockScreen() {
+export function UnlockScreen(): React.JSX.Element {
   const wallets = useWalletStore((s) => s.wallets);
   const unlock = useWalletStore((s) => s.unlock);
   const activeWalletId = useWalletStore((s) => s.activeWalletId);
