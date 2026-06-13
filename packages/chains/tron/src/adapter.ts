@@ -80,7 +80,7 @@ export class TronAdapter implements ChainAdapter {
   private readonly apiKey?: string;
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey;
+    if (apiKey !== undefined) this.apiKey = apiKey;
   }
 
   derivationPath(accountIndex = 0): string {
