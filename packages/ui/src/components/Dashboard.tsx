@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useWalletStore } from "@wallet/store";
 import { ChainCard } from "./ChainCard.js";
 import { SendModal } from "./SendModal.js";
@@ -11,7 +11,7 @@ import type { WalletAccount } from "@wallet/core";
 export function Dashboard(): React.JSX.Element | null {
   const wallet = useWalletStore((s) => s.getActiveWallet());
   const accounts = useWalletStore((s) => s.getActiveAccounts());
-  const refreshAll = useWalletStore((s) => s.refreshAllBalances);
+  const refreshBalance = useWalletStore((s) => s.refreshBalance);
   const isUnlocked = useWalletStore((s) => s.isUnlocked());
   const lock = useWalletStore((s) => s.lock);
 
@@ -19,25 +19,31 @@ export function Dashboard(): React.JSX.Element | null {
   const [receiveAccount, setReceiveAccount] = useState<WalletAccount | null>(null);
   const [activeTab, setActiveTab] = useState<string>(accounts[0]?.chainId ?? "");
   const [refreshing, setRefreshing] = useState(false);
+  const loadedTabs = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (accounts.length > 0 && !activeTab) setActiveTab(accounts[0]!.chainId);
   }, [accounts]);
 
+  const activeAccount = accounts.find((a) => a.chainId === activeTab) ?? null;
+
+  useEffect(() => {
+    if (!activeAccount) return;
+    void (async () => {
+      await refreshBalance(activeAccount);
+      loadedTabs.current.add(activeAccount.chainId);
+    })();
+  }, [activeAccount?.id]);
+
   async function handleRefresh() {
+    if (!activeAccount) return;
     setRefreshing(true);
     try {
-      await refreshAll();
+      await refreshBalance(activeAccount);
     } finally {
       setRefreshing(false);
     }
   }
-
-  useEffect(() => {
-    void handleRefresh();
-  }, [wallet?.id]);
-
-  const activeAccount = accounts.find((a) => a.chainId === activeTab);
 
   if (!wallet) return null;
 
@@ -53,7 +59,7 @@ export function Dashboard(): React.JSX.Element | null {
             onClick={handleRefresh}
             disabled={refreshing}
             className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-40"
-            title="Refresh balances"
+            title="Refresh balance"
           >
             {refreshing ? "⟳" : "↻"}
           </button>
@@ -69,32 +75,31 @@ export function Dashboard(): React.JSX.Element | null {
       </header>
 
       <div className="max-w-xl mx-auto px-4 py-6 space-y-6">
-        <div className="grid gap-3">
-          {accounts.map((account) => (
-            <ChainCard
-              key={account.id}
-              account={account}
-              onSend={setSendAccount}
-              onReceive={setReceiveAccount}
-            />
-          ))}
-        </div>
+        {activeAccount && (
+          <ChainCard
+            account={activeAccount}
+            onSend={setSendAccount}
+            onReceive={setReceiveAccount}
+          />
+        )}
 
         <div>
-          <div className="flex gap-1 mb-4 bg-gray-900 p-1 rounded-xl">
-            {accounts.map((account) => (
-              <button
-                key={account.chainId}
-                onClick={() => setActiveTab(account.chainId)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  activeTab === account.chainId
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-              >
-                {account.name}
-              </button>
-            ))}
+          <div className="overflow-x-auto">
+            <div className="flex gap-1 mb-4 bg-gray-900 p-1 rounded-xl min-w-max">
+              {accounts.map((account) => (
+                <button
+                  key={account.chainId}
+                  onClick={() => setActiveTab(account.chainId)}
+                  className={`flex-shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                    activeTab === account.chainId
+                      ? "bg-gray-700 text-white"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  {account.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeAccount && (

@@ -10,8 +10,11 @@ export const metadata: Metadata = {
   title: "Crypto Wallet",
   description: "Your keys, your coins. Multi-chain self-custody wallet.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon.svg",
+  },
   appleWebApp: {
-    capable: true,
     statusBarStyle: "black-translucent",
     title: "Crypto Wallet",
   },
