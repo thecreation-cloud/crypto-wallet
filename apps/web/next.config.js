@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 
-const isStaticExport = process.env.NEXT_STATIC_EXPORT === "1";
+// Never use static export on Vercel — it runs a Node.js server and doesn't need it.
+// Static export is only for Tauri desktop builds run locally.
+const isStaticExport = process.env.NEXT_STATIC_EXPORT === "1" && !process.env.VERCEL;
 
 const nextConfig = {
   output: isStaticExport ? "export" : undefined,
