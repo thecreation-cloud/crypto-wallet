@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
       typescript:
         specifier: ~5.4.5
         version: 5.4.5
@@ -95,8 +98,8 @@ importers:
         specifier: ~18.2.79
         version: 18.2.79
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   apps/web:
     dependencies:
@@ -159,8 +162,8 @@ importers:
         specifier: ^3.4.6
         version: 3.4.19(yaml@2.9.0)
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/aptos:
     dependencies:
@@ -172,8 +175,8 @@ importers:
         version: link:../../core
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/bitcoin:
     dependencies:
@@ -191,8 +194,8 @@ importers:
         version: 2.2.4
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/ethereum:
     dependencies:
@@ -207,8 +210,8 @@ importers:
         version: 2.52.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76)
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/near:
     dependencies:
@@ -223,8 +226,8 @@ importers:
         version: 2.0.0
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/solana:
     dependencies:
@@ -242,8 +245,8 @@ importers:
         version: 1.0.3
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/tron:
     dependencies:
@@ -261,8 +264,8 @@ importers:
         version: 4.0.0
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/chains/xrp:
     dependencies:
@@ -274,8 +277,8 @@ importers:
         version: 4.6.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/core:
     dependencies:
@@ -293,8 +296,8 @@ importers:
         version: 1.6.0
     devDependencies:
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/store:
     dependencies:
@@ -315,8 +318,8 @@ importers:
         specifier: ^18.3.3
         version: 18.3.31
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
   packages/ui:
     dependencies:
@@ -340,8 +343,8 @@ importers:
         specifier: ^18.3.0
         version: 18.3.7(@types/react@18.3.31)
       typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
+        specifier: ~5.4.5
+        version:  5.4.5
 
 packages:
 

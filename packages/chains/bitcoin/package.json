@@ -19,6 +19,6 @@
     "tiny-secp256k1": "^2.2.3"
   },
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "~5.4.5"
   }
 }

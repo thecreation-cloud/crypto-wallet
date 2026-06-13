@@ -5,7 +5,7 @@ function getSubtleCrypto(): SubtleCrypto {
   throw new Error("Web Crypto API is not available in this environment");
 }
 
-async function deriveKeyFromPassword(password: string, salt: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
+async function deriveKeyFromPassword(password: string, salt: Uint8Array): Promise<CryptoKey> {
   const subtle = getSubtleCrypto();
   const enc = new TextEncoder();
   const keyMaterial = await subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
@@ -44,13 +44,13 @@ export async function decrypt(payload: EncryptedPayload, password: string): Prom
   return dec.decode(plaintext);
 }
 
-function bufToHex(buf: Uint8Array<ArrayBufferLike>): string {
+function bufToHex(buf: Uint8Array): string {
   return Array.from(buf)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
 
-function hexToBuf(hex: string): Uint8Array<ArrayBuffer> {
+function hexToBuf(hex: string): Uint8Array {
   const arr = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
     arr[i / 2] = parseInt(hex.slice(i, i + 2), 16);

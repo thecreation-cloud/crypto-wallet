@@ -14,6 +14,7 @@
     "clean": "pnpm -r clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "~5.4.5"
   }
 }
