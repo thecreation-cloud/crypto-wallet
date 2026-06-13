@@ -143,16 +143,16 @@ export class TronAdapter implements ChainAdapter {
   }
 
   async sendTransaction(params: SendParams): Promise<SendResult> {
-    const fromHex = base58CheckToHex(params.from);
-    const toHexAddr = base58CheckToHex(params.to);
+    const senderHex = base58CheckToHex(params.from);
+    const recipientHex = base58CheckToHex(params.to);
 
     const createRes = await this.tronPost<{
       txID: string;
       raw_data: object;
       raw_data_hex: string;
     }>("/wallet/createtransaction", {
-      owner_address: fromHex,
-      to_address: toHexAddr,
+      owner_address: senderHex,
+      to_address: recipientHex,
       amount: Number(params.value),
       visible: false,
     });
