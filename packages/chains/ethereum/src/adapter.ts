@@ -174,8 +174,7 @@ export class EVMAdapter implements ChainAdapter {
       blockNums.map((bn) => this.client.getBlock({ blockNumber: bn! })),
     );
     const timestamps = new Map(
-      blocks
-        .filter((r) => r.status === "fulfilled") as PromiseFulfilledResult<Awaited<ReturnType<typeof this.client.getBlock>>>[]
+      (blocks.filter((r) => r.status === "fulfilled") as PromiseFulfilledResult<Awaited<ReturnType<typeof this.client.getBlock>>>[])
         .map((r) => [r.value.number.toString(), Number(r.value.timestamp)]),
     );
 
