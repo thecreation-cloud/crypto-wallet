@@ -14,12 +14,13 @@ interface ChainAdapterSetupConfig {
 
 interface WalletSetupProps {
   onComplete?: () => void;
+  onCloudRestore?: () => void;
   chainAdapters: ChainAdapterSetupConfig[];
 }
 
 type Step = "choice" | "create-backup" | "import" | "password";
 
-export function WalletSetup({ onComplete, chainAdapters }: WalletSetupProps): React.JSX.Element {
+export function WalletSetup({ onComplete, onCloudRestore, chainAdapters }: WalletSetupProps): React.JSX.Element {
   const addWallet = useWalletStore((s) => s.addWallet);
   const unlock = useWalletStore((s) => s.unlock);
 
@@ -121,6 +122,14 @@ export function WalletSetup({ onComplete, chainAdapters }: WalletSetupProps): Re
             >
               Import with Recovery Phrase
             </button>
+            {onCloudRestore && (
+              <button
+                onClick={onCloudRestore}
+                className="w-full py-3 px-6 bg-gray-900 hover:bg-gray-800 text-indigo-400 hover:text-indigo-300 font-semibold rounded-xl transition-colors border border-gray-700"
+              >
+                ☁ Restore from Cloud Backup
+              </button>
+            )}
           </div>
         </div>
       </div>

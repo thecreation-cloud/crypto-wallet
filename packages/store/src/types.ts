@@ -22,6 +22,7 @@ export interface WalletStore {
   transactions: Record<string, Transaction[]>;
   prices: Record<string, number>;
   pricesUpdatedAt: number;
+  _hasHydrated: boolean;
 
   addWallet: (wallet: StoredWallet) => void;
   removeWallet: (id: string) => void;
@@ -35,6 +36,8 @@ export interface WalletStore {
 
   hiddenChainsByWallet: Record<string, string[]>;
   setChainVisibility: (chainId: string, visible: boolean) => void;
+
+  setHasHydrated: (v: boolean) => void;
 
   registerAdapter: (adapter: ChainAdapter) => void;
   getAdapter: (chainId: ChainId) => ChainAdapter | undefined;

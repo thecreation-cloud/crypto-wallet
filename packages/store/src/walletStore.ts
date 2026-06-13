@@ -54,6 +54,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       prices: {},
       pricesUpdatedAt: 0,
       hiddenChainsByWallet: {},
+      _hasHydrated: false,
 
       addWallet: (wallet) => {
         set((s) => {
@@ -115,6 +116,10 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
             list.push(chainId);
           }
         });
+      },
+
+      setHasHydrated: (v) => {
+        set((s) => { s._hasHydrated = v; });
       },
 
       registerAdapter: (adapter) => {
@@ -224,6 +229,9 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
         activeWalletId: state.activeWalletId,
         hiddenChainsByWallet: state.hiddenChainsByWallet,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
