@@ -1,5 +1,6 @@
 import { create, type UseBoundStore, type StoreApi } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { markRaw } from "immer";
 import { deriveKey, deriveEd25519Key } from "@wallet/core";
 
 const ED25519_CHAINS = new Set(["solana", "near", "aptos"]);
@@ -70,7 +71,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
 
     registerAdapter: (adapter) => {
       set((s) => {
-        s.adapters.set(adapter.chainId, adapter);
+        s.adapters.set(adapter.chainId, markRaw(adapter));
       });
     },
 
