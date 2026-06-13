@@ -1,1 +1,5 @@
-{}
+{
+  "buildCommand": "NEXT_STATIC_EXPORT=1 pnpm --filter @wallet/web build",
+  "outputDirectory": "apps/web/out",
+  "installCommand": "pnpm install --ignore-scripts"
+}
