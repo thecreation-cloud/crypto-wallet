@@ -34,7 +34,9 @@ interface NetworksModalProps {
 
 export function NetworksModal({ onClose }: NetworksModalProps): React.JSX.Element {
   const accounts = useWalletStore((s) => s.getActiveAccounts());
-  const hiddenChainIds = useWalletStore((s) => s.hiddenChainIds);
+  const hiddenChainIds = useWalletStore(
+    (s) => s.activeWalletId ? (s.hiddenChainsByWallet[s.activeWalletId] ?? []) : [],
+  );
   const setChainVisibility = useWalletStore((s) => s.setChainVisibility);
 
   const visibleCount = accounts.filter((a) => !hiddenChainIds.includes(a.chainId)).length;

@@ -24,7 +24,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       session: null,
       balances: {},
       transactions: {},
-      hiddenChainIds: [],
+      hiddenChainsByWallet: {},
 
       addWallet: (wallet) => {
         set((s) => {
@@ -36,6 +36,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       removeWallet: (id) => {
         set((s) => {
           s.wallets = s.wallets.filter((w) => w.id !== id);
+          delete s.hiddenChainsByWallet[id];
           if (s.activeWalletId === id) {
             s.activeWalletId = s.wallets[0]?.id ?? null;
             if (s.session?.walletId === id) s.session = null;
@@ -75,10 +76,14 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
 
       setChainVisibility: (chainId, visible) => {
         set((s) => {
+          const walletId = s.activeWalletId;
+          if (!walletId) return;
+          if (!s.hiddenChainsByWallet[walletId]) s.hiddenChainsByWallet[walletId] = [];
+          const list = s.hiddenChainsByWallet[walletId]!;
           if (visible) {
-            s.hiddenChainIds = s.hiddenChainIds.filter((id) => id !== chainId);
-          } else if (!s.hiddenChainIds.includes(chainId)) {
-            s.hiddenChainIds.push(chainId);
+            s.hiddenChainsByWallet[walletId] = list.filter((id) => id !== chainId);
+          } else if (!list.includes(chainId)) {
+            list.push(chainId);
           }
         });
       },
@@ -155,7 +160,7 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       partialize: (state) => ({
         wallets: state.wallets,
         activeWalletId: state.activeWalletId,
-        hiddenChainIds: state.hiddenChainIds,
+        hiddenChainsByWallet: state.hiddenChainsByWallet,
       }),
     },
   ),

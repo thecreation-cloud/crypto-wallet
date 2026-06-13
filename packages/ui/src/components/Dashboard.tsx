@@ -12,7 +12,9 @@ import type { WalletAccount } from "@wallet/core";
 export function Dashboard(): React.JSX.Element | null {
   const wallet = useWalletStore((s) => s.getActiveWallet());
   const accounts = useWalletStore((s) => s.getActiveAccounts());
-  const hiddenChainIds = useWalletStore((s) => s.hiddenChainIds);
+  const hiddenChainIds = useWalletStore(
+    (s) => s.activeWalletId ? (s.hiddenChainsByWallet[s.activeWalletId] ?? []) : [],
+  );
   const refreshBalance = useWalletStore((s) => s.refreshBalance);
   const isUnlocked = useWalletStore((s) => s.isUnlocked());
   const lock = useWalletStore((s) => s.lock);
