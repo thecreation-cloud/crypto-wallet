@@ -74,7 +74,7 @@ export function WalletSetup({ onComplete, chainAdapters }: WalletSetupProps): Re
           name,
           chainId: adapter.chainId,
           address: adapter.deriveAddress(derived.publicKey),
-          publicKey: Buffer.from(derived.publicKey).toString("hex"),
+          publicKey: Array.from(derived.publicKey).map((b) => b.toString(16).padStart(2, "0")).join(""),
           derivationPath: path,
           accountIndex: 0,
         };

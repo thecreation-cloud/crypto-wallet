@@ -89,7 +89,7 @@ export class SolanaAdapter implements ChainAdapter {
     const signatures = await this.connection.getSignaturesForAddress(new PublicKey(address), { limit });
 
     const txs = await Promise.allSettled(
-      signatures.map(async (sig) => {
+      signatures.map(async (sig): Promise<WalletTx | null> => {
         const tx = await this.connection.getParsedTransaction(sig.signature, { maxSupportedTransactionVersion: 0 });
         if (!tx) return null;
 

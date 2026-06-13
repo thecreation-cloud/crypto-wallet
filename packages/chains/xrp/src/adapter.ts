@@ -133,7 +133,7 @@ export class XRPAdapter implements ChainAdapter {
           const meta = item.meta as { TransactionResult?: string } | undefined;
           const succeeded = meta?.TransactionResult === "tesSUCCESS";
 
-          return {
+          const txResult: WalletTx = {
             hash: tx.hash ?? "",
             from: fromAddr,
             to: toAddr || null,
@@ -142,8 +142,9 @@ export class XRPAdapter implements ChainAdapter {
             timestamp: "date" in tx ? Math.floor((Number(tx.date ?? 0) + 946684800) * 1) : 0,
             status: succeeded ? ("confirmed" as const) : ("failed" as const),
             direction: fromAddr === address ? ("out" as const) : ("in" as const),
-            blockNumber: "ledger_index" in tx ? Number(tx.ledger_index) : undefined,
           };
+          if ("ledger_index" in tx) txResult.blockNumber = Number(tx.ledger_index);
+          return txResult;
         })
         .filter((tx): tx is WalletTx => tx !== null);
     } catch (err: unknown) {
