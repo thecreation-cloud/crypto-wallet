@@ -69,13 +69,16 @@ export class AptosAdapter implements ChainAdapter {
       const resources = await this.aptos.getAccountCoinsData({ accountAddress: address });
       return resources
         .filter((coin) => coin.asset_type !== APTOS_COIN_TYPE)
-        .map((coin) => ({
-          symbol: coin.metadata?.symbol ?? coin.asset_type?.split("::").pop() ?? "UNKNOWN",
-          name: coin.metadata?.name ?? coin.asset_type ?? "Unknown Token",
-          decimals: coin.metadata?.decimals ?? 8,
-          balance: BigInt(coin.amount),
-          contractAddress: coin.asset_type ?? undefined,
-        }));
+        .map((coin) => {
+          const entry: TokenBalance = {
+            symbol: coin.metadata?.symbol ?? coin.asset_type?.split("::").pop() ?? "UNKNOWN",
+            name: coin.metadata?.name ?? coin.asset_type ?? "Unknown Token",
+            decimals: coin.metadata?.decimals ?? 8,
+            balance: BigInt(coin.amount),
+          };
+          if (coin.asset_type != null) entry.contractAddress = coin.asset_type;
+          return entry;
+        });
     } catch {
       return [];
     }
