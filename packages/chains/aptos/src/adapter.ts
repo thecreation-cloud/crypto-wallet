@@ -40,7 +40,7 @@ export class AptosAdapter implements ChainAdapter {
 
   deriveAddress(publicKey: Uint8Array): string {
     const pubKey = new Ed25519PublicKey(publicKey);
-    return AccountAddress.fromPublicKey(pubKey).toString();
+    return pubKey.authKey().derivedAddress().toString();
   }
 
   validateAddress(address: string): boolean {
