@@ -1,6 +1,5 @@
 import { create, type UseBoundStore, type StoreApi } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { markRaw } from "immer";
 import { deriveKey, deriveEd25519Key } from "@wallet/core";
 
 const ED25519_CHAINS = new Set(["solana", "near", "aptos"]);
@@ -8,6 +7,9 @@ import type { ChainId, StoredWallet, WalletAccount, ChainAdapter } from "@wallet
 import type { WalletStore, ActiveSession, BalanceEntry } from "./types.js";
 
 const BALANCE_CACHE_MS = 30_000;
+
+// Stored outside immer state so class instances are never proxied by immer
+const adapterRegistry = new Map<ChainId, ChainAdapter>();
 
 function balanceKey(chainId: ChainId, address: string): string {
   return `${chainId}:${address}`;
@@ -20,7 +22,6 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
     session: null,
     balances: {},
     transactions: {},
-    adapters: new Map(),
 
     addWallet: (wallet) => {
       set((s) => {
@@ -70,15 +71,13 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
     isUnlocked: () => get().session !== null,
 
     registerAdapter: (adapter) => {
-      set((s) => {
-        s.adapters.set(adapter.chainId, markRaw(adapter));
-      });
+      adapterRegistry.set(adapter.chainId, adapter);
     },
 
-    getAdapter: (chainId) => get().adapters.get(chainId),
+    getAdapter: (chainId) => adapterRegistry.get(chainId),
 
     refreshBalance: async (account) => {
-      const adapter = get().adapters.get(account.chainId);
+      const adapter = adapterRegistry.get(account.chainId);
       if (!adapter) return;
 
       const key = balanceKey(account.chainId, account.address);
@@ -109,10 +108,10 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
     },
 
     sendTransaction: async (account, to, value, tokenAddress) => {
-      const { session, adapters } = get();
+      const { session } = get();
       if (!session) throw new Error("Wallet is locked — unlock before sending");
 
-      const adapter = adapters.get(account.chainId);
+      const adapter = adapterRegistry.get(account.chainId);
       if (!adapter) throw new Error(`No adapter registered for chain ${account.chainId}`);
 
       const derive = ED25519_CHAINS.has(account.chainId) ? deriveEd25519Key : deriveKey;

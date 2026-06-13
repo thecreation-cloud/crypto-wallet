@@ -20,7 +20,6 @@ export interface WalletStore {
   session: ActiveSession | null;
   balances: Record<string, BalanceEntry>;
   transactions: Record<string, Transaction[]>;
-  adapters: Map<ChainId, ChainAdapter>;
 
   addWallet: (wallet: StoredWallet) => void;
   removeWallet: (id: string) => void;
