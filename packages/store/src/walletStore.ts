@@ -121,7 +121,7 @@ export const useWalletStore = create<WalletStore>()(
         to,
         value,
         privateKey,
-        tokenAddress,
+        ...(tokenAddress !== undefined ? { tokenAddress } : {}),
       });
 
       await get().refreshBalance(account);
