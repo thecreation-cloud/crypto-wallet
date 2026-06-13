@@ -1,0 +1,24 @@
+{
+  "name": "@wallet/chain-solana",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wallet/core": "workspace:*",
+    "@solana/web3.js": "^1.95.3",
+    "bs58": "^6.0.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@wallet/chain-bitcoin",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wallet/core": "workspace:*",
+    "bitcoinjs-lib": "^6.1.6",
+    "@noble/secp256k1": "^2.1.0",
+    "tiny-secp256k1": "^2.2.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@wallet/web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:static": "NEXT_STATIC_EXPORT=1 next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wallet/core": "workspace:*",
+    "@wallet/store": "workspace:*",
+    "@wallet/ui": "workspace:*",
+    "@wallet/chain-ethereum": "workspace:*",
+    "@wallet/chain-solana": "workspace:*",
+    "@wallet/chain-bitcoin": "workspace:*",
+    "@wallet/chain-tron": "workspace:*",
+    "@wallet/chain-xrp": "workspace:*",
+    "@wallet/chain-near": "workspace:*",
+    "@wallet/chain-aptos": "workspace:*",
+    "next": "^14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.4.5"
+  }
+}

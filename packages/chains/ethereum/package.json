@@ -1,0 +1,23 @@
+{
+  "name": "@wallet/chain-ethereum",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wallet/core": "workspace:*",
+    "@noble/curves": "^1.4.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

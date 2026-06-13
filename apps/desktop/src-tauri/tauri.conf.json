@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Crypto Wallet",
+  "version": "0.0.1",
+  "identifier": "com.cryptowallet.app",
+  "build": {
+    "beforeDevCommand": "pnpm --filter @wallet/web dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "pnpm --filter @wallet/web build:static",
+    "frontendDist": "../../web/out"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "Crypto Wallet",
+        "width": 440,
+        "height": 780,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Finance",
+    "shortDescription": "Multi-chain self-custody wallet",
+    "longDescription": "A multi-chain cryptocurrency wallet. Your keys, your coins."
+  }
+}

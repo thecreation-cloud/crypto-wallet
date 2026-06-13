@@ -1,0 +1,22 @@
+{
+  "name": "@wallet/chain-xrp",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wallet/core": "workspace:*",
+    "xrpl": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

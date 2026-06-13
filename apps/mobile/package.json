@@ -1,0 +1,41 @@
+{
+  "name": "@wallet/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "build:ios": "eas build --platform ios",
+    "build:android": "eas build --platform android"
+  },
+  "dependencies": {
+    "@wallet/core": "workspace:*",
+    "@wallet/store": "workspace:*",
+    "@wallet/chain-ethereum": "workspace:*",
+    "@wallet/chain-solana": "workspace:*",
+    "@wallet/chain-bitcoin": "workspace:*",
+    "@wallet/chain-tron": "workspace:*",
+    "@wallet/chain-xrp": "workspace:*",
+    "@wallet/chain-near": "workspace:*",
+    "@wallet/chain-aptos": "workspace:*",
+    "expo": "~51.0.0",
+    "expo-router": "~3.5.0",
+    "expo-crypto": "~13.0.0",
+    "expo-clipboard": "~6.0.0",
+    "expo-secure-store": "~13.0.0",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.0",
+    "react-native-get-random-values": "~1.11.0",
+    "@craftzdog/react-native-buffer": "^6.0.3",
+    "zustand": "^4.5.4",
+    "immer": "^10.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "~18.2.79",
+    "typescript": "^5.4.5"
+  }
+}
