@@ -1,4 +1,4 @@
 {
-  "installCommand": "cd ../.. && pnpm install --ignore-scripts",
+  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile --ignore-scripts",
   "framework": "nextjs"
 }
