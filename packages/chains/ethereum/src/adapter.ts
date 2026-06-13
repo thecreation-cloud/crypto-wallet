@@ -123,9 +123,9 @@ export class EVMAdapter implements ChainAdapter {
       }),
     );
 
-    return results
-      .filter((r): r is PromiseFulfilledResult<TokenBalance> => r.status === "fulfilled")
-      .map((r) => r.value);
+    return (results.filter((r) => r.status === "fulfilled") as PromiseFulfilledResult<TokenBalance>[]).map(
+      (r) => r.value,
+    );
   }
 
   async sendTransaction(params: SendParams): Promise<SendResult> {
@@ -175,7 +175,7 @@ export class EVMAdapter implements ChainAdapter {
     );
     const timestamps = new Map(
       blocks
-        .filter((r): r is PromiseFulfilledResult<Awaited<ReturnType<typeof this.client.getBlock>>> => r.status === "fulfilled")
+        .filter((r) => r.status === "fulfilled") as PromiseFulfilledResult<Awaited<ReturnType<typeof this.client.getBlock>>>[]
         .map((r) => [r.value.number.toString(), Number(r.value.timestamp)]),
     );
 
