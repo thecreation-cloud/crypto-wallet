@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@noble/curves": "^1.4.0",
     "@wallet/core": "workspace:*",
     "xrpl": "^4.0.0"
   },

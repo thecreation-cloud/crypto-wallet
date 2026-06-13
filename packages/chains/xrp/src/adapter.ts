@@ -1,16 +1,19 @@
+import { secp256k1 } from "@noble/curves/secp256k1";
 import {
   Client,
   Wallet,
   Payment,
-  xrpToDrops,
-  dropsToXrp,
-  convertStringToHex,
+  deriveAddress,
   AccountTxTransaction,
 } from "xrpl";
 import type { ChainAdapter, TokenBalance, Transaction as WalletTx, SendParams, SendResult } from "@wallet/core";
 
 export interface XRPAdapterConfig {
   rpcUrl?: string;
+}
+
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
 }
 
 export class XRPAdapter implements ChainAdapter {
@@ -31,11 +34,7 @@ export class XRPAdapter implements ChainAdapter {
   }
 
   deriveAddress(publicKey: Uint8Array): string {
-    const wallet = Wallet.fromSeed(
-      Buffer.from(publicKey).toString("hex"),
-      { algorithm: "secp256k1" },
-    );
-    return wallet.classicAddress;
+    return deriveAddress(toHex(publicKey));
   }
 
   validateAddress(address: string): boolean {
@@ -51,8 +50,7 @@ export class XRPAdapter implements ChainAdapter {
         account: address,
         ledger_index: "current",
       });
-      const balanceDrops = response.result.account_data.Balance;
-      return BigInt(balanceDrops);
+      return BigInt(response.result.account_data.Balance);
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes("Account not found")) return 0n;
       throw err;
@@ -87,8 +85,10 @@ export class XRPAdapter implements ChainAdapter {
   }
 
   async sendTransaction(params: SendParams): Promise<SendResult> {
-    const privKeyHex = Buffer.from(params.privateKey).toString("hex").toUpperCase();
-    const wallet = Wallet.fromSeed(privKeyHex, { algorithm: "secp256k1" });
+    const privKeyHex = toHex(params.privateKey);
+    const pubKeyBytes = secp256k1.getPublicKey(params.privateKey, true);
+    const pubKeyHex = toHex(pubKeyBytes);
+    const wallet = new Wallet(pubKeyHex, "00" + privKeyHex);
 
     const client = new Client(this.rpcUrl);
     try {
@@ -103,7 +103,7 @@ export class XRPAdapter implements ChainAdapter {
       const prepared = await client.autofill(payment);
       const signed = wallet.sign(prepared);
       const result = await client.submitAndWait(signed.tx_blob);
-      return { hash: result.result.hash };
+      return { hash: result.result.hash ?? "" };
     } finally {
       await client.disconnect();
     }
@@ -122,28 +122,28 @@ export class XRPAdapter implements ChainAdapter {
       });
 
       return response.result.transactions
-        .map((item): WalletTx | null => {
-          const tx = item.tx as AccountTxTransaction["tx"];
+        .map((item: AccountTxTransaction): WalletTx | null => {
+          const tx = item.tx_json;
           if (!tx || tx.TransactionType !== "Payment") return null;
 
           const fromAddr = tx.Account ?? "";
-          const toAddr = "Destination" in tx ? (tx.Destination as string) : "";
+          const toAddr = tx.Destination ?? null;
           const amount = typeof tx.Amount === "string" ? BigInt(tx.Amount) : 0n;
           const fee = BigInt(tx.Fee ?? 0);
           const meta = item.meta as { TransactionResult?: string } | undefined;
           const succeeded = meta?.TransactionResult === "tesSUCCESS";
 
           const txResult: WalletTx = {
-            hash: tx.hash ?? "",
+            hash: item.hash ?? tx.hash ?? "",
             from: fromAddr,
             to: toAddr || null,
             value: amount,
             fee,
-            timestamp: "date" in tx ? Math.floor((Number(tx.date ?? 0) + 946684800) * 1) : 0,
+            timestamp: tx.date ?? 0,
             status: succeeded ? ("confirmed" as const) : ("failed" as const),
             direction: fromAddr === address ? ("out" as const) : ("in" as const),
           };
-          if ("ledger_index" in tx) txResult.blockNumber = Number(tx.ledger_index);
+          txResult.blockNumber = item.ledger_index;
           return txResult;
         })
         .filter((tx): tx is WalletTx => tx !== null);

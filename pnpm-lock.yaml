@@ -269,6 +269,9 @@ importers:
 
   packages/chains/xrp:
     dependencies:
+      '@noble/curves':
+        specifier: ^1.4.0
+        version: 1.9.7
       '@wallet/core':
         specifier: workspace:*
         version: link:../../core
