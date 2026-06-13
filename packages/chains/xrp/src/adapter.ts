@@ -157,5 +157,5 @@ export class XRPAdapter implements ChainAdapter {
 }
 
 export function createXRPAdapter(rpcUrl?: string): XRPAdapter {
-  return new XRPAdapter({ rpcUrl });
+  return new XRPAdapter(rpcUrl !== undefined ? { rpcUrl } : {});
 }

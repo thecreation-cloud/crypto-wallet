@@ -9,8 +9,21 @@ const TRX_DECIMALS = 6;
 
 const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
+function toHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function fromHex(hex: string): Uint8Array {
+  const normalized = hex.length % 2 ? "0" + hex : hex;
+  const bytes = new Uint8Array(normalized.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(normalized.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+
 function base58Encode(buf: Uint8Array): string {
-  let num = BigInt("0x" + Buffer.from(buf).toString("hex"));
+  let num = BigInt("0x" + (toHex(buf) || "00"));
   let result = "";
   while (num > 0n) {
     result = (BASE58_ALPHABET[Number(num % 58n)] ?? "") + result;
@@ -30,8 +43,8 @@ function base58Decode(str: string): Uint8Array {
     if (idx < 0) throw new Error("Invalid base58 character");
     num = num * 58n + BigInt(idx);
   }
-  const hex = num.toString(16).padStart(2, "0");
-  const bytes = Buffer.from(hex.length % 2 ? "0" + hex : hex, "hex");
+  const hex = num.toString(16);
+  const bytes = fromHex(hex.length % 2 ? "0" + hex : hex);
   const leading = str.match(/^1*/)?.[0].length ?? 0;
   return new Uint8Array([...new Uint8Array(leading), ...bytes]);
 }
@@ -43,7 +56,7 @@ function addressToBase58Check(addressBytes: Uint8Array): string {
 
 function base58CheckToHex(address: string): string {
   const decoded = base58Decode(address);
-  return Buffer.from(decoded.slice(0, 21)).toString("hex");
+  return toHex(decoded.slice(0, 21));
 }
 
 interface TronGridAccount {
@@ -103,7 +116,7 @@ export class TronAdapter implements ChainAdapter {
       const payload = decoded.slice(0, 21);
       const checksum = decoded.slice(21);
       const computed = sha256(sha256(payload)).slice(0, 4);
-      return Buffer.from(checksum).toString("hex") === Buffer.from(computed).toString("hex");
+      return toHex(checksum) === toHex(computed);
     } catch {
       return false;
     }
@@ -131,7 +144,7 @@ export class TronAdapter implements ChainAdapter {
 
   async sendTransaction(params: SendParams): Promise<SendResult> {
     const fromHex = base58CheckToHex(params.from);
-    const toHex = base58CheckToHex(params.to);
+    const toHexAddr = base58CheckToHex(params.to);
 
     const createRes = await this.tronPost<{
       txID: string;
@@ -139,16 +152,16 @@ export class TronAdapter implements ChainAdapter {
       raw_data_hex: string;
     }>("/wallet/createtransaction", {
       owner_address: fromHex,
-      to_address: toHex,
+      to_address: toHexAddr,
       amount: Number(params.value),
       visible: false,
     });
 
-    const txIdBytes = Buffer.from(createRes.txID, "hex");
+    const txIdBytes = fromHex(createRes.txID);
     const sig = secp256k1.sign(txIdBytes, params.privateKey);
     const sigBytes = sig.toCompactRawBytes();
     const v = sig.recovery ? "01" : "00";
-    const signature = Buffer.from(sigBytes).toString("hex") + v;
+    const signature = toHex(sigBytes) + v;
 
     await this.tronPost("/wallet/broadcasttransaction", {
       ...createRes,
@@ -167,20 +180,20 @@ export class TronAdapter implements ChainAdapter {
     return data.data.map((tx) => {
       const contract = tx.raw_data.contract[0];
       const value = contract?.parameter.value;
-      const fromHex = value?.owner_address ?? "";
-      const toHex = value?.to_address ?? "";
+      const fromAddr = value?.owner_address ?? "";
+      const toAddr = value?.to_address ?? "";
       const amount = BigInt(value?.amount ?? 0);
       const succeeded = tx.ret?.[0]?.contractRet === "SUCCESS";
 
       return {
         hash: tx.txID,
-        from: fromHex,
-        to: toHex || null,
+        from: fromAddr,
+        to: toAddr || null,
         value: amount,
         fee: 0n,
         timestamp: Math.floor(tx.raw_data.timestamp / 1000),
         status: succeeded ? ("confirmed" as const) : ("failed" as const),
-        direction: fromHex.toLowerCase() === base58CheckToHex(address).toLowerCase() ? ("out" as const) : ("in" as const),
+        direction: fromAddr.toLowerCase() === base58CheckToHex(address).toLowerCase() ? ("out" as const) : ("in" as const),
       };
     });
   }
