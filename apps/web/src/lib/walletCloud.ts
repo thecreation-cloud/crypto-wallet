@@ -3,19 +3,15 @@ import type { StoredWallet } from "@wallet/core";
 
 // --- Auth ---
 
-export async function signInWithOtp(email: string): Promise<void> {
+export async function signInWithLink(email: string): Promise<void> {
+  const redirectTo =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback`
+      : "/auth/callback";
+
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
-  });
-  if (error) throw new Error(error.message);
-}
-
-export async function verifyOtp(email: string, token: string): Promise<void> {
-  const { error } = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: "email",
+    options: { shouldCreateUser: true, emailRedirectTo: redirectTo },
   });
   if (error) throw new Error(error.message);
 }
