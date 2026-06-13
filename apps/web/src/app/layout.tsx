@@ -14,10 +14,6 @@ export const metadata: Metadata = {
     icon: "/icons/icon.svg",
     apple: "/icons/icon.svg",
   },
-  appleWebApp: {
-    statusBarStyle: "black-translucent",
-    title: "Crypto Wallet",
-  },
 };
 
 export const viewport: Viewport = {

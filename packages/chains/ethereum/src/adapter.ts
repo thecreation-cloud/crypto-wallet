@@ -74,6 +74,7 @@ export interface EVMAdapterConfig {
   trackedTokens?: Address[];
   explorerApiBase?: string;
   explorerApiKey?: string;
+  txProxyUrl?: string;
 }
 
 export class EVMAdapter implements ChainAdapter {
@@ -88,6 +89,7 @@ export class EVMAdapter implements ChainAdapter {
   private readonly viemChain: Chain;
   private readonly explorerApiBase: string | undefined;
   private readonly explorerApiKey: string | undefined;
+  private readonly txProxyUrl: string | undefined;
 
   constructor(config: EVMAdapterConfig) {
     this.viemChain = config.chain;
@@ -99,6 +101,7 @@ export class EVMAdapter implements ChainAdapter {
     this.trackedTokens = config.trackedTokens ?? [];
     this.explorerApiBase = config.explorerApiBase;
     this.explorerApiKey = config.explorerApiKey;
+    this.txProxyUrl = config.txProxyUrl;
     this.client = createPublicClient({
       chain: config.chain,
       transport: http(config.rpcUrl),
@@ -182,11 +185,22 @@ export class EVMAdapter implements ChainAdapter {
     if (!this.explorerApiBase) return [];
 
     try {
-      const keyParam = this.explorerApiKey ? `&apikey=${this.explorerApiKey}` : "";
-      const url =
-        `${this.explorerApiBase}/api?module=account&action=txlist` +
-        `&address=${address}&startblock=0&endblock=99999999` +
-        `&page=1&offset=${limit}&sort=desc${keyParam}`;
+      let url: string;
+      if (this.txProxyUrl) {
+        // Route through the app's server-side proxy to avoid browser CORS blocks
+        const proxy = new URL(this.txProxyUrl, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+        proxy.searchParams.set("apiBase", this.explorerApiBase);
+        proxy.searchParams.set("address", address);
+        proxy.searchParams.set("limit", String(limit));
+        if (this.explorerApiKey) proxy.searchParams.set("apiKey", this.explorerApiKey);
+        url = proxy.toString();
+      } else {
+        const keyParam = this.explorerApiKey ? `&apikey=${this.explorerApiKey}` : "";
+        url =
+          `${this.explorerApiBase}/api?module=account&action=txlist` +
+          `&address=${address}&startblock=0&endblock=99999999` +
+          `&page=1&offset=${limit}&sort=desc${keyParam}`;
+      }
 
       const res = await fetch(url);
       const json = (await res.json()) as { status: string; result: EtherscanTx[] | string };
