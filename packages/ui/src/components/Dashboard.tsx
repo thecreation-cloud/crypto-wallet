@@ -16,6 +16,10 @@ export function Dashboard(): React.JSX.Element | null {
     (s) => s.activeWalletId ? (s.hiddenChainsByWallet[s.activeWalletId] ?? []) : [],
   );
   const refreshBalance = useWalletStore((s) => s.refreshBalance);
+  const fetchPrices = useWalletStore((s) => s.fetchPrices);
+  const balances = useWalletStore((s) => s.balances);
+  const prices = useWalletStore((s) => s.prices);
+  const adapters = useWalletStore((s) => s.getActiveAccounts().map((a) => s.getAdapter(a.chainId)));
   const isUnlocked = useWalletStore((s) => s.isUnlocked());
   const lock = useWalletStore((s) => s.lock);
 
@@ -44,11 +48,14 @@ export function Dashboard(): React.JSX.Element | null {
 
   const activeAccount = visibleAccounts.find((a) => a.chainId === activeTab) ?? null;
 
-  // Load balance lazily when active tab changes
+  // Load balance lazily when active tab changes; also keep prices fresh
   useEffect(() => {
     if (!activeAccount) return;
     void (async () => {
-      await refreshBalance(activeAccount);
+      await Promise.all([
+        refreshBalance(activeAccount),
+        fetchPrices(),
+      ]);
       loadedTabs.current.add(activeAccount.chainId);
     })();
   }, [activeAccount?.id]);
@@ -63,6 +70,17 @@ export function Dashboard(): React.JSX.Element | null {
     }
   }
 
+  const totalUsd = accounts.reduce((sum, acc, i) => {
+    const key = `${acc.chainId}:${acc.address}`;
+    const bal = balances[key];
+    const price = prices[acc.chainId];
+    const decimals = adapters[i]?.decimals ?? 18;
+    if (!bal || !price) return sum;
+    return sum + (Number(bal.native) / 10 ** decimals) * price;
+  }, 0);
+
+  const hasPrices = Object.keys(prices).length > 0;
+
   if (!wallet) return null;
 
   return (
@@ -70,7 +88,16 @@ export function Dashboard(): React.JSX.Element | null {
       <header className="border-b border-gray-800 px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="font-bold text-white">{wallet.name}</h1>
-          <p className="text-gray-500 text-xs">{isUnlocked ? "Unlocked" : "Locked"}</p>
+          {hasPrices ? (
+            <p className="text-indigo-400 text-sm font-semibold">
+              {totalUsd >= 1_000
+                ? `$${totalUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+                : `$${totalUsd.toFixed(2)}`}
+              <span className="text-gray-600 font-normal text-xs ml-1">total</span>
+            </p>
+          ) : (
+            <p className="text-gray-500 text-xs">{isUnlocked ? "Unlocked" : "Locked"}</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button

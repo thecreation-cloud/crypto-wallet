@@ -46,6 +46,7 @@ export interface ChainAdapter {
   getTokenBalances(address: string): Promise<TokenBalance[]>;
   sendTransaction(params: SendParams): Promise<SendResult>;
   getTransactions(address: string, limit?: number): Promise<Transaction[]>;
+  estimateFee?(from: string, to: string, value: bigint, tokenAddress?: string): Promise<bigint>;
   validateAddress(address: string): boolean;
   deriveAddress(publicKey: Uint8Array): string;
   derivationPath(accountIndex?: number): string;

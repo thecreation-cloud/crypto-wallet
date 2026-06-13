@@ -4,6 +4,7 @@ import {
   http,
   publicActions,
   keccak256,
+  encodeFunctionData,
   type Chain,
   type Address,
 } from "viem";
@@ -52,11 +53,27 @@ const ERC20_ABI = [
   },
 ] as const;
 
+interface EtherscanTx {
+  hash: string;
+  from: string;
+  to: string;
+  value: string;
+  gasUsed: string;
+  gasPrice: string;
+  timeStamp: string;
+  isError: string;
+  blockNumber: string;
+  tokenSymbol?: string;
+  tokenDecimal?: string;
+}
+
 export interface EVMAdapterConfig {
   chain: Chain;
   rpcUrl: string;
   walletChainId?: string;
   trackedTokens?: Address[];
+  explorerApiBase?: string;
+  explorerApiKey?: string;
 }
 
 export class EVMAdapter implements ChainAdapter {
@@ -69,6 +86,8 @@ export class EVMAdapter implements ChainAdapter {
   private readonly client;
   private readonly trackedTokens: Address[];
   private readonly viemChain: Chain;
+  private readonly explorerApiBase: string | undefined;
+  private readonly explorerApiKey: string | undefined;
 
   constructor(config: EVMAdapterConfig) {
     this.viemChain = config.chain;
@@ -78,6 +97,8 @@ export class EVMAdapter implements ChainAdapter {
     this.decimals = config.chain.nativeCurrency.decimals;
     this.explorerUrl = config.chain.blockExplorers?.default.url ?? "";
     this.trackedTokens = config.trackedTokens ?? [];
+    this.explorerApiBase = config.explorerApiBase;
+    this.explorerApiKey = config.explorerApiKey;
     this.client = createPublicClient({
       chain: config.chain,
       transport: http(config.rpcUrl),
@@ -158,37 +179,55 @@ export class EVMAdapter implements ChainAdapter {
   }
 
   async getTransactions(address: string, limit = 25): Promise<WalletTx[]> {
-    const blockNumber = await this.client.getBlockNumber();
-    const fromBlock = blockNumber > BigInt(10_000) ? blockNumber - BigInt(10_000) : 0n;
+    if (!this.explorerApiBase) return [];
 
-    const logs = await this.client.getLogs({ fromBlock, toBlock: "latest" }).catch(() => []);
-    const addrLogs = logs
-      .filter(
-        (l) =>
-          l.topics.some((t) => t?.toLowerCase().includes(address.slice(2).toLowerCase())),
-      )
-      .slice(0, limit);
+    try {
+      const keyParam = this.explorerApiKey ? `&apikey=${this.explorerApiKey}` : "";
+      const url =
+        `${this.explorerApiBase}/api?module=account&action=txlist` +
+        `&address=${address}&startblock=0&endblock=99999999` +
+        `&page=1&offset=${limit}&sort=desc${keyParam}`;
 
-    const blockNums = [...new Set(addrLogs.map((l) => l.blockNumber).filter(Boolean))];
-    const blocks = await Promise.allSettled(
-      blockNums.map((bn) => this.client.getBlock({ blockNumber: bn! })),
-    );
-    const timestamps = new Map(
-      (blocks.filter((r) => r.status === "fulfilled") as PromiseFulfilledResult<Awaited<ReturnType<typeof this.client.getBlock>>>[])
-        .filter((r) => r.value.number != null)
-        .map((r) => [r.value.number!.toString(), Number(r.value.timestamp)]),
-    );
+      const res = await fetch(url);
+      const json = (await res.json()) as { status: string; result: EtherscanTx[] | string };
 
-    return addrLogs.map((log) => ({
-      hash: log.transactionHash ?? "",
-      from: address,
-      to: null,
-      value: 0n,
-      fee: 0n,
-      timestamp: timestamps.get(log.blockNumber?.toString() ?? "") ?? 0,
-      status: "confirmed" as const,
-      direction: "out" as const,
-      blockNumber: Number(log.blockNumber ?? 0),
-    }));
+      if (json.status !== "1" || !Array.isArray(json.result)) return [];
+
+      return json.result.map((tx) => ({
+        hash: tx.hash,
+        from: tx.from,
+        to: tx.to || null,
+        value: BigInt(tx.value),
+        fee: BigInt(tx.gasUsed) * BigInt(tx.gasPrice),
+        timestamp: Number(tx.timeStamp),
+        status: tx.isError === "0" ? ("confirmed" as const) : ("failed" as const),
+        direction: tx.from.toLowerCase() === address.toLowerCase() ? ("out" as const) : ("in" as const),
+        blockNumber: Number(tx.blockNumber),
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  async estimateFee(from: string, to: string, value: bigint, tokenAddress?: string): Promise<bigint> {
+    try {
+      const data = tokenAddress
+        ? encodeFunctionData({ abi: ERC20_ABI, functionName: "transfer", args: [to as Address, value] })
+        : undefined;
+
+      const [gasLimit, gasPrice] = await Promise.all([
+        this.client.estimateGas({
+          account: from as Address,
+          to: (tokenAddress ?? to) as Address,
+          value: tokenAddress ? undefined : value,
+          data,
+        }),
+        this.client.getGasPrice(),
+      ]);
+
+      return gasLimit * gasPrice;
+    } catch {
+      return 0n;
+    }
   }
 }

@@ -1,3 +1,6 @@
+/* eslint-disable no-var */
+declare var process: { env: Record<string, string | undefined> } | undefined;
+
 import { create, type UseBoundStore, type StoreApi } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { persist } from "zustand/middleware";
@@ -8,6 +11,30 @@ import type { ChainId, StoredWallet, WalletAccount, ChainAdapter } from "@wallet
 import type { WalletStore, ActiveSession, BalanceEntry } from "./types.js";
 
 const BALANCE_CACHE_MS = 30_000;
+const PRICE_CACHE_MS = 5 * 60_000;
+
+const COINGECKO_IDS: Record<string, string> = {
+  ethereum:  "ethereum",
+  bitcoin:   "bitcoin",
+  solana:    "solana",
+  bnb:       "binancecoin",
+  polygon:   "matic-network",
+  avalanche: "avalanche-2",
+  arbitrum:  "ethereum",
+  optimism:  "ethereum",
+  base:      "ethereum",
+  fantom:    "fantom",
+  zksync:    "ethereum",
+  cronos:    "crypto-com-chain",
+  gnosis:    "gnosis",
+  celo:      "celo",
+  litecoin:  "litecoin",
+  dogecoin:  "dogecoin",
+  tron:      "tron",
+  xrp:       "ripple",
+  near:      "near",
+  aptos:     "aptos",
+};
 
 // Stored outside immer state so class instances are never proxied by immer
 const adapterRegistry = new Map<ChainId, ChainAdapter>();
@@ -24,6 +51,8 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       session: null,
       balances: {},
       transactions: {},
+      prices: {},
+      pricesUpdatedAt: 0,
       hiddenChainsByWallet: {},
 
       addWallet: (wallet) => {
@@ -93,6 +122,39 @@ export const useWalletStore: UseBoundStore<StoreApi<WalletStore>> = create<Walle
       },
 
       getAdapter: (chainId) => adapterRegistry.get(chainId),
+
+      fetchPrices: async () => {
+        if (Date.now() - get().pricesUpdatedAt < PRICE_CACHE_MS) return;
+        const accounts = get().getActiveAccounts();
+        if (accounts.length === 0) return;
+
+        const chainIds = [...new Set(accounts.map((a) => a.chainId))];
+        const geckoIds = [...new Set(chainIds.map((id) => COINGECKO_IDS[id]).filter(Boolean))];
+        if (geckoIds.length === 0) return;
+
+        try {
+          const apiKey =
+            typeof process !== "undefined" ? process.env["NEXT_PUBLIC_COINGECKO_KEY"] : undefined;
+          const keyParam = apiKey ? `&x_cg_demo_api_key=${apiKey}` : "";
+          const res = await fetch(
+            `https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds.join(",")}&vs_currencies=usd${keyParam}`,
+          );
+          const data = (await res.json()) as Record<string, { usd: number }>;
+
+          const prices: Record<string, number> = {};
+          for (const chainId of chainIds) {
+            const geckoId = COINGECKO_IDS[chainId];
+            if (geckoId && data[geckoId]?.usd) prices[chainId] = data[geckoId]!.usd;
+          }
+
+          set((s) => {
+            s.prices = prices;
+            s.pricesUpdatedAt = Date.now();
+          });
+        } catch {
+          // Price fetch failed — keep existing prices
+        }
+      },
 
       refreshBalance: async (account) => {
         const adapter = adapterRegistry.get(account.chainId);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useWalletStore } from "@wallet/store";
 import type { WalletAccount } from "@wallet/core";
 
@@ -14,12 +14,15 @@ type Status = "idle" | "loading" | "success" | "error";
 export function SendModal({ account, onClose }: SendModalProps): React.JSX.Element {
   const sendTransaction = useWalletStore((s) => s.sendTransaction);
   const adapter = useWalletStore((s) => s.getAdapter(account.chainId));
+  const price = useWalletStore((s) => s.prices[account.chainId]);
 
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [txHash, setTxHash] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [estimatedFee, setEstimatedFee] = useState<bigint | null>(null);
+  const [estimating, setEstimating] = useState(false);
 
   const decimals = adapter?.decimals ?? 18;
   const symbol = adapter?.symbol ?? account.chainId.toUpperCase();
@@ -30,6 +33,37 @@ export function SendModal({ account, onClose }: SendModalProps): React.JSX.Eleme
     const fracPadded = frac.slice(0, decimals).padEnd(decimals, "0");
     return BigInt(whole ?? "0") * BigInt(10 ** decimals) + BigInt(fracPadded);
   }
+
+  function formatBalance(value: bigint, dec: number): string {
+    if (value === 0n) return "0";
+    const divisor = BigInt(10 ** dec);
+    const whole = value / divisor;
+    const frac = (value % divisor).toString().padStart(dec, "0").slice(0, 6).replace(/0+$/, "");
+    return frac ? `${whole}.${frac}` : `${whole}`;
+  }
+
+  // Debounced gas estimate — fires 600ms after to/amount stops changing
+  useEffect(() => {
+    setEstimatedFee(null);
+    if (!adapter?.estimateFee || !to || !amount) return;
+
+    const parsed = parseAmount(amount);
+    if (parsed === 0n) return;
+
+    const timer = setTimeout(async () => {
+      setEstimating(true);
+      try {
+        const fee = await adapter.estimateFee!(account.address, to, parsed);
+        setEstimatedFee(fee);
+      } catch {
+        // estimation failed silently
+      } finally {
+        setEstimating(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [to, amount]);
 
   async function handleSend() {
     if (!to || !amount) return;
@@ -50,6 +84,11 @@ export function SendModal({ account, onClose }: SendModalProps): React.JSX.Eleme
       setStatus("error");
     }
   }
+
+  const feeUsd =
+    estimatedFee !== null && price
+      ? (Number(estimatedFee) / 10 ** decimals) * price
+      : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -113,6 +152,26 @@ export function SendModal({ account, onClose }: SendModalProps): React.JSX.Eleme
               </div>
             </div>
 
+            {/* Gas estimate */}
+            <div className="h-8 flex items-center">
+              {estimating && (
+                <p className="text-gray-500 text-xs">Estimating fee…</p>
+              )}
+              {!estimating && estimatedFee !== null && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-gray-500">Estimated fee:</span>
+                  <span className="text-gray-300 font-medium">
+                    {formatBalance(estimatedFee, decimals)} {symbol}
+                  </span>
+                  {feeUsd !== null && (
+                    <span className="text-gray-500">
+                      (~${feeUsd < 0.01 ? feeUsd.toFixed(4) : feeUsd.toFixed(2)})
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
             {status === "error" && errorMsg && (
               <p className="text-red-400 text-sm bg-red-950/30 border border-red-800 rounded-lg px-3 py-2">{errorMsg}</p>
             )}
@@ -129,7 +188,7 @@ export function SendModal({ account, onClose }: SendModalProps): React.JSX.Eleme
                 onClick={handleSend}
                 className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-semibold rounded-xl text-sm transition-colors"
               >
-                {status === "loading" ? "Sending..." : "Send"}
+                {status === "loading" ? "Sending…" : "Send"}
               </button>
             </div>
           </>

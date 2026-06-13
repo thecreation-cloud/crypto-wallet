@@ -70,16 +70,25 @@ function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
+function fmtUsd(value: number): string {
+  if (value >= 1_000) return `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  if (value >= 1) return `$${value.toFixed(2)}`;
+  return `$${value.toFixed(4)}`;
+}
+
 export function ChainCard({ account, onSend, onReceive }: ChainCardProps): React.JSX.Element {
   const balanceEntry = useWalletStore((s) => s.getBalance(account.chainId, account.address));
   const adapter = useWalletStore((s) => s.getAdapter(account.chainId));
   const isUnlocked = useWalletStore((s) => s.isUnlocked());
+  const price = useWalletStore((s) => s.prices[account.chainId]);
 
   const icon = CHAIN_ICONS[account.chainId] ?? "●";
   const colorClass = CHAIN_COLORS[account.chainId] ?? "from-gray-900/40 to-gray-800/20 border-gray-700/40";
   const symbol = adapter?.symbol ?? account.chainId.toUpperCase();
   const decimals = adapter?.decimals ?? 18;
   const native = balanceEntry?.native ?? 0n;
+  const usdValue =
+    balanceEntry && price ? (Number(native) / 10 ** decimals) * price : null;
 
   return (
     <div className={`rounded-2xl border bg-gradient-to-br p-4 ${colorClass}`}>
@@ -106,6 +115,9 @@ export function ChainCard({ account, onSend, onReceive }: ChainCardProps): React
         <p className="text-2xl font-bold text-white">
           {balanceEntry ? formatBalance(native, decimals, symbol) : <span className="text-gray-600">···</span>}
         </p>
+        {usdValue !== null && (
+          <p className="text-sm text-gray-400 mt-0.5">{fmtUsd(usdValue)}</p>
+        )}
         {balanceEntry?.tokens && balanceEntry.tokens.length > 0 && (
           <div className="flex gap-2 mt-1 flex-wrap">
             {balanceEntry.tokens.slice(0, 3).map((t) => (

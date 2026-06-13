@@ -20,6 +20,8 @@ export interface WalletStore {
   session: ActiveSession | null;
   balances: Record<string, BalanceEntry>;
   transactions: Record<string, Transaction[]>;
+  prices: Record<string, number>;
+  pricesUpdatedAt: number;
 
   addWallet: (wallet: StoredWallet) => void;
   removeWallet: (id: string) => void;
@@ -39,6 +41,7 @@ export interface WalletStore {
 
   refreshBalance: (account: WalletAccount) => Promise<void>;
   refreshAllBalances: () => Promise<void>;
+  fetchPrices: () => Promise<void>;
   sendTransaction: (
     account: WalletAccount,
     to: string,
